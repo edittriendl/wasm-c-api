@@ -182,6 +182,16 @@ enum wasm_valkind_enum {
   WASM_I64,
   WASM_F32,
   WASM_F64,
+  WASM_V128,
+  WASM_S8,
+  WASM_S16,
+  WASM_S32,
+  WASM_S64,
+  WASM_U8,
+  WASM_U16,
+  WASM_U32,
+  WASM_U64,
+  WASM_STRING = 127,
   WASM_ANYREF = 128,
   WASM_FUNCREF,
 };
@@ -295,7 +305,6 @@ WASM_API_EXTERN const wasm_externtype_t* wasm_importtype_type(const wasm_importt
 
 
 // Export Types
-
 WASM_DECLARE_TYPE(exporttype)
 
 WASM_API_EXTERN own wasm_exporttype_t* wasm_exporttype_new(
@@ -319,6 +328,7 @@ typedef struct wasm_val_t {
     int64_t i64;
     float32_t f32;
     float64_t f64;
+    const char *string;
     struct wasm_ref_t* ref;
   } of;
 } wasm_val_t;
@@ -412,6 +422,7 @@ WASM_API_EXTERN own wasm_module_t* wasm_module_deserialize(wasm_store_t*, const 
 // Function Instances
 
 WASM_DECLARE_REF(func)
+WASM_DECLARE_REF(adapter)
 
 typedef own wasm_trap_t* (*wasm_func_callback_t)(
   const wasm_val_vec_t* args, own wasm_val_vec_t* results);
@@ -429,8 +440,10 @@ WASM_API_EXTERN size_t wasm_func_param_arity(const wasm_func_t*);
 WASM_API_EXTERN size_t wasm_func_result_arity(const wasm_func_t*);
 
 WASM_API_EXTERN own wasm_trap_t* wasm_func_call(
-  const wasm_func_t*, const wasm_val_vec_t* args, wasm_val_vec_t* results);
+  const wasm_func_t*, const wasm_val_t* args, wasm_val_t* results);
 
+WASM_API_EXTERN own wasm_trap_t* wasm_adapter_call(
+  const wasm_adapter_t*, const wasm_val_t* args, wasm_val_t* results);
 
 // Global Instances
 
@@ -496,6 +509,7 @@ WASM_API_EXTERN wasm_extern_t* wasm_table_as_extern(wasm_table_t*);
 WASM_API_EXTERN wasm_extern_t* wasm_memory_as_extern(wasm_memory_t*);
 
 WASM_API_EXTERN wasm_func_t* wasm_extern_as_func(wasm_extern_t*);
+WASM_API_EXTERN wasm_adapter_t* wasm_extern_as_adapter(wasm_extern_t*);
 WASM_API_EXTERN wasm_global_t* wasm_extern_as_global(wasm_extern_t*);
 WASM_API_EXTERN wasm_table_t* wasm_extern_as_table(wasm_extern_t*);
 WASM_API_EXTERN wasm_memory_t* wasm_extern_as_memory(wasm_extern_t*);
@@ -522,6 +536,8 @@ WASM_API_EXTERN own wasm_instance_t* wasm_instance_new(
 
 WASM_API_EXTERN void wasm_instance_exports(const wasm_instance_t*, own wasm_extern_vec_t* out);
 
+WASM_API_EXTERN own wasm_trap_t* wasm_get_export(const wasm_instance_t*, const wasm_name_t*, 
+own wasm_extern_vec_t* result);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Convenience
